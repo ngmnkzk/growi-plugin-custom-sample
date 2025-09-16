@@ -191,11 +191,7 @@ export const remarkPlugin: Plugin = () => {
 
 export const rehypePlugin: Plugin = () => {
   return (tree: Node) => {
-    // node type is 'element' or 'text' (2nd argument)
-    visit(tree, 'text', (node: Node) => {
-      const n = node as unknown as GrowiNode;
-      const { value } = n;
-      n.value = `${value} ✨`;
-    });
+    // This plugin is currently disabled
+    // You can add custom rehype transformations here if needed
   };
 };

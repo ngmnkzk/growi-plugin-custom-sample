@@ -35,34 +35,72 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
       setHasSearched(true);
 
       try {
-        // GROWI検索APIエンドポイントを使用
-        const response = await fetch(`/_api/v3/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+        // GROWI検索APIの複数のエンドポイントを試行
+        let response;
+        let data;
 
-        if (response.ok) {
-          const data = await response.json();
-          setResults(data.data || []);
-        } else {
-          // APIが利用できない場合のフォールバック
-          console.warn('GROWI search API not available, showing mock results');
-          setResults([
-            {
-              _id: '1',
-              path: '/sample-page',
-              title: `Search results for "${searchQuery}"`,
-              body: 'This is a sample search result. In a real GROWI environment, this would show actual page content.',
-              score: 1.0
+        // 1. 新しいAPI形式を試行
+        try {
+          response = await fetch(`/_api/v3/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+          if (response.ok) {
+            data = await response.json();
+            if (data.data && Array.isArray(data.data)) {
+              setResults(data.data);
+              return;
             }
-          ]);
+          }
+        } catch (e) {
+          console.warn('v3 API failed:', e);
         }
+
+        // 2. 古いAPI形式を試行
+        try {
+          response = await fetch(`/_api/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+          if (response.ok) {
+            data = await response.json();
+            if (data.data && Array.isArray(data.data)) {
+              setResults(data.data);
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn('v1 API failed:', e);
+        }
+
+        // 3. デモ用の検索結果を表示
+        console.info('Using demo search results for:', searchQuery);
+        setResults([
+          {
+            _id: 'demo-1',
+            path: `/search-demo/${encodeURIComponent(searchQuery)}`,
+            title: `Demo: "${searchQuery}" の検索結果`,
+            body: `これはデモ用の検索結果です。実際のGROWI環境では、"${searchQuery}"に関連するページが表示されます。`,
+            score: 1.0
+          },
+          {
+            _id: 'demo-2',
+            path: '/getting-started',
+            title: 'GROWIの使い方',
+            body: 'GROWIでの基本的な操作方法やMarkdown記法について説明しています。',
+            score: 0.8
+          },
+          {
+            _id: 'demo-3',
+            path: '/plugins',
+            title: 'プラグイン開発ガイド',
+            body: 'GROWIプラグインの開発方法とベストプラクティスについて解説します。',
+            score: 0.6
+          }
+        ]);
+
       } catch (error) {
-        console.error('Search failed:', error);
-        // エラー時のフォールバック
+        console.error('All search methods failed:', error);
         setResults([
           {
             _id: 'error',
-            path: '/error',
-            title: 'Search temporarily unavailable',
-            body: 'Please try again later or contact your administrator.',
+            path: '#',
+            title: '検索機能を準備中です',
+            body: 'GROWI検索APIの設定を確認してください。現在はデモモードで動作しています。',
             score: 0
           }
         ]);
