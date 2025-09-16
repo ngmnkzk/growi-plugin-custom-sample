@@ -47,73 +47,117 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
         let response;
         let data;
 
-        // 1. 新しいAPI形式を試行
-        try {
-          response = await fetch(`/_api/v3/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
-          if (response.ok) {
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              data = await response.json();
-              if (data.data && Array.isArray(data.data)) {
-                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
-                setResults(validResults);
-                return;
-              }
-            } else {
-              console.warn('v3 API returned non-JSON response:', contentType);
-            }
-          } else {
-            console.warn('v3 API response not ok:', response.status, response.statusText);
-          }
-        } catch (e) {
-          console.warn('v3 API failed:', e);
-        }
-
-        // 2. 古いAPI形式を試行
+        // 1. GROWI Elasticsearch API (/_api/search)
         try {
           response = await fetch(`/_api/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
           if (response.ok) {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
-              if (data.data && Array.isArray(data.data)) {
+              console.log('Search API response:', data);
+              if (data.searchResult && Array.isArray(data.searchResult.data)) {
+                const validResults = data.searchResult.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
+                return;
+              } else if (data.data && Array.isArray(data.data)) {
                 const validResults = data.data.filter((item: any) => item && typeof item === 'object');
                 setResults(validResults);
                 return;
               }
             } else {
-              console.warn('v1 API returned non-JSON response:', contentType);
+              console.warn('Search API returned non-JSON response:', contentType);
             }
           } else {
-            console.warn('v1 API response not ok:', response.status, response.statusText);
+            console.warn('Search API response not ok:', response.status, response.statusText);
           }
         } catch (e) {
-          console.warn('v1 API failed:', e);
+          console.warn('Search API failed:', e);
         }
 
-        // 3. 他のAPI形式を試行
+        // 2. GROWI v3 Search API
         try {
-          response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+          response = await fetch(`/_api/v3/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
           if (response.ok) {
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
-              if (data.data && Array.isArray(data.data)) {
+              console.log('v3 Search API response:', data);
+              if (data.searchResult && Array.isArray(data.searchResult.data)) {
+                const validResults = data.searchResult.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
+                return;
+              } else if (data.data && Array.isArray(data.data)) {
                 const validResults = data.data.filter((item: any) => item && typeof item === 'object');
                 setResults(validResults);
                 return;
               }
             } else {
-              console.warn('v2 API returned non-JSON response:', contentType);
+              console.warn('v3 Search API returned non-JSON response:', contentType);
             }
           } else {
-            console.warn('v2 API response not ok:', response.status, response.statusText);
+            console.warn('v3 Search API response not ok:', response.status, response.statusText);
           }
         } catch (e) {
-          console.warn('v2 API failed:', e);
+          console.warn('v3 Search API failed:', e);
         }
 
-        // 4. デモ用の検索結果を表示
+        // 3. GROWI Pages Search API
+        try {
+          response = await fetch(`/_api/pages?search=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+          if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+              console.log('Pages API response:', data);
+              if (data.pages && Array.isArray(data.pages)) {
+                const validResults = data.pages.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
+                return;
+              } else if (data.data && Array.isArray(data.data)) {
+                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
+                return;
+              }
+            } else {
+              console.warn('Pages API returned non-JSON response:', contentType);
+            }
+          } else {
+            console.warn('Pages API response not ok:', response.status, response.statusText);
+          }
+        } catch (e) {
+          console.warn('Pages API failed:', e);
+        }
+
+        // 4. Direct Elasticsearch API
+        try {
+          response = await fetch(`/_api/elasticsearch?q=${encodeURIComponent(searchQuery)}&from=0&size=20`);
+          if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+              console.log('Elasticsearch API response:', data);
+              if (data.hits && data.hits.hits && Array.isArray(data.hits.hits)) {
+                const validResults = data.hits.hits.map((hit: any) => ({
+                  _id: hit._id,
+                  path: hit._source?.path || hit._source?.url,
+                  title: hit._source?.title,
+                  body: hit._source?.body || hit._source?.content,
+                  score: hit._score
+                })).filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
+                return;
+              }
+            } else {
+              console.warn('Elasticsearch API returned non-JSON response:', contentType);
+            }
+          } else {
+            console.warn('Elasticsearch API response not ok:', response.status, response.statusText);
+          }
+        } catch (e) {
+          console.warn('Elasticsearch API failed:', e);
+        }
+
+        // 5. デモ用の検索結果を表示
         console.info('Using demo search results for:', searchQuery);
         const demoResults = [
           {
