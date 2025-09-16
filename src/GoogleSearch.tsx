@@ -58,7 +58,8 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
               if (data.data && Array.isArray(data.data)) {
-                setResults(data.data);
+                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
                 return;
               }
             } else {
@@ -79,7 +80,8 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
               if (data.data && Array.isArray(data.data)) {
-                setResults(data.data);
+                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
                 return;
               }
             } else {
@@ -100,7 +102,8 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
               if (data.data && Array.isArray(data.data)) {
-                setResults(data.data);
+                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
+                setResults(validResults);
                 return;
               }
             } else {
@@ -185,7 +188,8 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
       }
     }, [initialQuery, performSearch]);
 
-    const formatSearchResultBody = (body: string, maxLength: number = 150) => {
+    const formatSearchResultBody = (body: string | undefined | null, maxLength: number = 150) => {
+      if (!body || typeof body !== 'string') return '';
       if (body.length <= maxLength) return body;
       return body.substring(0, maxLength) + '...';
     };
@@ -256,16 +260,16 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
                 )}
 
                 <div className="search-results-list">
-                  {results && Array.isArray(results) && results.map((result) => (
-                    <div key={result._id} className="search-result-item">
+                  {results && Array.isArray(results) && results.filter((result: any) => result && typeof result === 'object').map((result) => (
+                    <div key={result._id || Math.random()} className="search-result-item">
                       <div className="result-url">
-                        <a href={result.path} className="result-link">
-                          {window.location.origin + result.path}
+                        <a href={result.path || '#'} className="result-link">
+                          {window.location.origin + (result.path || '')}
                         </a>
                       </div>
                       <div className="result-title">
-                        <a href={result.path} className="result-title-link">
-                          {result.title || result.path}
+                        <a href={result.path || '#'} className="result-title-link">
+                          {result.title || result.path || 'Untitled'}
                         </a>
                       </div>
                       <div className="result-snippet">
