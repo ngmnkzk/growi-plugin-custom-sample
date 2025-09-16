@@ -54,21 +54,37 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
-              console.log('Search API response:', data);
-              console.log('Search API data structure:', JSON.stringify(data, null, 2));
 
               if (data.searchResult && Array.isArray(data.searchResult.data)) {
-                console.log('Using searchResult.data structure');
                 const validResults = data.searchResult.data.filter((item: any) => item && typeof item === 'object');
-                console.log('Valid results from searchResult:', validResults);
                 setResults(validResults);
                 return;
               } else if (data.data && Array.isArray(data.data)) {
-                console.log('Using data structure');
-                console.log('Raw data items:', data.data);
-                const validResults = data.data.filter((item: any) => item && typeof item === 'object');
-                console.log('Valid results from data:', validResults);
-                setResults(validResults);
+
+                // GROWIの検索結果をプラグイン用の形式に変換
+                const transformedResults = data.data
+                  .filter((item: any) => item && item.data && typeof item === 'object')
+                  .map((item: any) => {
+                    const pageData = item.data;
+                    const metaData = item.meta;
+
+                    // パスからページタイトルを抽出
+                    const path = pageData.path || '';
+                    const pathParts = path.split('/');
+                    const title = pathParts[pathParts.length - 1] || path || 'Untitled';
+
+                    return {
+                      _id: pageData._id || pageData.id,
+                      path: path,
+                      title: title,
+                      body: metaData?.elasticSearchResult?.snippet || '',
+                      score: 1.0,
+                      updatedAt: pageData.updatedAt,
+                      creator: pageData.creator?.name || pageData.creator?.username
+                    };
+                  });
+
+                setResults(transformedResults);
                 return;
               }
             } else {
@@ -236,10 +252,15 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
       }
     }, [initialQuery, performSearch]);
 
+    const stripHtmlTags = (html: string) => {
+      return html.replace(/<[^>]*>/g, '');
+    };
+
     const formatSearchResultBody = (body: string | undefined | null, maxLength: number = 150) => {
       if (!body || typeof body !== 'string') return '';
-      if (body.length <= maxLength) return body;
-      return body.substring(0, maxLength) + '...';
+      const cleanBody = stripHtmlTags(body);
+      if (cleanBody.length <= maxLength) return cleanBody;
+      return cleanBody.substring(0, maxLength) + '...';
     };
 
     return (
