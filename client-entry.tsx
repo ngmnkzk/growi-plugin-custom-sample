@@ -1,7 +1,7 @@
 import React from 'react';
 
 import config from './package.json';
-import { helloGROWI, googleSearchGROWI, remarkPlugin, rehypePlugin } from './src/Hello';
+import { enhancedGROWI, remarkPlugin, rehypePlugin } from './src/Hello';
 import { Options, Func, ViewOptions } from './types/utils';
 
 declare const growiFacade : {
@@ -18,10 +18,8 @@ declare const growiFacade : {
 
 const addPlugin = (options: ViewOptions) => {
   const { a } = options.components;
-  // replace existing components and add new search component
-  options.components.a = helloGROWI(a);
-  // Add div component for search functionality
-  (options.components as any).div = googleSearchGROWI((options.components as any).div || 'div');
+  // replace a component to handle both plugin and search directives
+  options.components.a = enhancedGROWI(a);
   options.remarkPlugins.push(remarkPlugin as any);
   options.rehypePlugins.push(rehypePlugin as any);
   return options;

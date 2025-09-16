@@ -75,15 +75,54 @@ export const helloGROWI = (Tag: React.FunctionComponent<any>): React.FunctionCom
   };
 };
 
-export const googleSearchGROWI = (Tag: React.FunctionComponent<any>): React.FunctionComponent<any> => {
+export const enhancedGROWI = (Tag: React.FunctionComponent<any>): React.FunctionComponent<any> => {
   return ({ children, ...props }) => {
     try {
       const parsedTitle = JSON.parse(props.title || '{}');
-      const { search } = parsedTitle;
+      const { plugin, search } = parsedTitle;
 
+      // Handle search directive
       if (search) {
         const queryString = Array.isArray(children) ? children.join('') : children || '';
         return <GoogleSearch initialQuery={queryString} />;
+      }
+
+      // Handle original plugin directive
+      if (plugin) {
+        const { react } = growiFacade;
+        const { useEffect, useCallback, useState } = react;
+        const [count, setCount] = useState(0);
+        const [obj, setObj] = useState<FakeJson | null>(null);
+
+        const getFakeJson = async(count: number) => {
+          const url = `https://jsonplaceholder.typicode.com/todos/${count}`;
+          const response = await fetch(url);
+          const json = await response.json() as FakeJson;
+          setObj(json);
+        };
+
+        useEffect(() => {
+          if (count > 0) getFakeJson(count);
+        }, [count]);
+
+        return (
+          <>
+            <a {...props}>{children}</a>
+            <div>Count: {count}</div>
+            <button
+              onClick={useCallback(() => setCount(c => c + 1), [])}
+            >
+              Up
+            </button>
+            { obj && (
+              <div>
+                <h2>{obj.title}</h2>
+                <div>{obj.id} & {obj.userId}</div>
+                <p>{obj.completed ? 'Completed' : 'Not Completed'}</p>
+              </div>
+            )}
+          </>
+        );
       }
     }
     catch (err) {
@@ -135,12 +174,13 @@ export const remarkPlugin: Plugin = () => {
 
       if (n.name === 'search') {
         const data = n.data || (n.data = {});
-        // Render Google search component
+        // Render Google search component using a tag like plugin
         const { value } = n.children[0] || { value: '' };
-        data.hName = 'div'; // Use div as container
+        data.hName = 'a'; // Use a tag to trigger googleSearchGROWI component
         data.hChildren = [{ type: 'text', value }]; // Pass search query as children
         // Set properties for search component
         data.hProperties = {
+          href: '#', // Dummy href
           className: 'growi-google-search',
           title: JSON.stringify({ ...n.attributes, ...{ search: true } }),
         };
