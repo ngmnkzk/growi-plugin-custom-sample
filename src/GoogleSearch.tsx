@@ -20,6 +20,8 @@ interface GoogleSearchProps {
 
 export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initialQuery = '', children, ...props }) => {
   try {
+    console.log('GoogleSearch component initialized with:', { initialQuery, children, props });
+
     if (!growiFacade || !growiFacade.react) {
       console.error('growiFacade.react is not available');
       return <div>Error: React hooks not available</div>;
@@ -28,10 +30,14 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     const { react } = growiFacade;
     const { useState, useCallback, useEffect } = react;
 
+    console.log('React hooks extracted successfully');
+
     const [query, setQuery] = useState(initialQuery || '');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
+
+    console.log('State initialized:', { query, results, isLoading, hasSearched });
 
     const performSearch = useCallback(async (searchQuery: string) => {
       if (!searchQuery.trim()) return;
@@ -160,6 +166,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     }, [handleSearch]);
 
     const handleLuckySearch = useCallback(() => {
+      console.log('handleLuckySearch called with results:', results);
       if (Array.isArray(results) && results.length > 0) {
         // 最初の結果にジャンプ
         window.location.href = results[0].path;
@@ -227,7 +234,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
           <button
             className="google-search-btn"
             onClick={handleLuckySearch}
-            disabled={isLoading || (!hasSearched && (!Array.isArray(results) || results.length === 0))}
+            disabled={isLoading || (!hasSearched && (!results || !Array.isArray(results) || results.length === 0))}
           >
             I'm Feeling Lucky
           </button>
@@ -242,14 +249,14 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
               </div>
             ) : (
               <>
-                {Array.isArray(results) && results.length > 0 && (
+                {results && Array.isArray(results) && results.length > 0 && (
                   <div className="search-stats">
                     About {results.length} results for "{query}"
                   </div>
                 )}
 
                 <div className="search-results-list">
-                  {Array.isArray(results) && results.map((result) => (
+                  {results && Array.isArray(results) && results.map((result) => (
                     <div key={result._id} className="search-result-item">
                       <div className="result-url">
                         <a href={result.path} className="result-link">
@@ -268,7 +275,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
                   ))}
                 </div>
 
-                {(!Array.isArray(results) || results.length === 0) && (
+                {(!results || !Array.isArray(results) || results.length === 0) && (
                   <div className="no-results">
                     <p>Your search - <strong>{query}</strong> - did not match any pages.</p>
                     <p>Suggestions:</p>
@@ -287,7 +294,9 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     );
   } catch (error) {
     console.error('GoogleSearch component error:', error);
-    return <div>Error loading search component</div>;
+    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+    console.error('Component props:', { initialQuery, children, props });
+    return <div>Error loading search component: {error instanceof Error ? error.message : String(error)}</div>;
   }
 };
 

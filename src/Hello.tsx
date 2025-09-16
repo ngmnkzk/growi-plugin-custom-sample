@@ -78,8 +78,10 @@ export const helloGROWI = (Tag: React.FunctionComponent<any>): React.FunctionCom
 export const enhancedGROWI = (Tag: React.FunctionComponent<any>): React.FunctionComponent<any> => {
   return ({ children, ...props }) => {
     try {
+      console.log('enhancedGROWI called with:', { children, props });
       const parsedTitle = JSON.parse(props.title || '{}');
       const { plugin, search } = parsedTitle;
+      console.log('Parsed title:', { plugin, search });
 
       // Handle search directive
       if (search) {
@@ -93,6 +95,7 @@ export const enhancedGROWI = (Tag: React.FunctionComponent<any>): React.Function
             queryString = String(children);
           }
         }
+        console.log('Rendering GoogleSearch with queryString:', queryString);
         return <GoogleSearch initialQuery={queryString} />;
       }
 
@@ -135,7 +138,9 @@ export const enhancedGROWI = (Tag: React.FunctionComponent<any>): React.Function
       }
     }
     catch (err) {
-      // console.error(err);
+      console.error('enhancedGROWI error:', err);
+      console.error('Props:', props);
+      console.error('Children:', children);
     }
     return <Tag {...props}>{children}</Tag>;
   };
