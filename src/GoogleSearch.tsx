@@ -20,7 +20,6 @@ interface GoogleSearchProps {
 
 export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initialQuery = '', children, ...props }) => {
   try {
-    console.log('GoogleSearch component initialized with:', { initialQuery, children, props });
 
     if (!growiFacade || !growiFacade.react) {
       console.error('growiFacade.react is not available');
@@ -30,14 +29,12 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     const { react } = growiFacade;
     const { useState, useCallback, useEffect } = react;
 
-    console.log('React hooks extracted successfully');
 
     const [query, setQuery] = useState(initialQuery || '');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
 
-    console.log('State initialized:', { query, results, isLoading, hasSearched });
 
     const performSearch = useCallback(async (searchQuery: string) => {
       if (!searchQuery.trim()) return;
@@ -118,7 +115,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
 
         // 4. デモ用の検索結果を表示
         console.info('Using demo search results for:', searchQuery);
-        setResults([
+        const demoResults = [
           {
             _id: 'demo-1',
             path: `/search-demo/${encodeURIComponent(searchQuery)}`,
@@ -140,7 +137,8 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             body: 'GROWIプラグインの開発方法とベストプラクティスについて解説します。',
             score: 0.6
           }
-        ]);
+        ];
+        setResults(demoResults);
 
       } catch (error) {
         console.error('All search methods failed:', error);
@@ -169,7 +167,6 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     }, [handleSearch]);
 
     const handleLuckySearch = useCallback(() => {
-      console.log('handleLuckySearch called with results:', results);
       if (Array.isArray(results) && results.length > 0) {
         // 最初の結果にジャンプ
         window.location.href = results[0].path;
@@ -298,9 +295,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     );
   } catch (error) {
     console.error('GoogleSearch component error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
-    console.error('Component props:', { initialQuery, children, props });
-    return <div>Error loading search component: {error instanceof Error ? error.message : String(error)}</div>;
+    return <div>Error loading search component</div>;
   }
 };
 
