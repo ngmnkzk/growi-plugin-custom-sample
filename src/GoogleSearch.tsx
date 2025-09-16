@@ -55,12 +55,19 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
             if (contentType && contentType.includes('application/json')) {
               data = await response.json();
               console.log('Search API response:', data);
+              console.log('Search API data structure:', JSON.stringify(data, null, 2));
+
               if (data.searchResult && Array.isArray(data.searchResult.data)) {
+                console.log('Using searchResult.data structure');
                 const validResults = data.searchResult.data.filter((item: any) => item && typeof item === 'object');
+                console.log('Valid results from searchResult:', validResults);
                 setResults(validResults);
                 return;
               } else if (data.data && Array.isArray(data.data)) {
+                console.log('Using data structure');
+                console.log('Raw data items:', data.data);
                 const validResults = data.data.filter((item: any) => item && typeof item === 'object');
+                console.log('Valid results from data:', validResults);
                 setResults(validResults);
                 return;
               }
