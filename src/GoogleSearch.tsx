@@ -235,12 +235,12 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
 
     const handleLuckySearch = useCallback(() => {
       if (Array.isArray(results) && results.length > 0) {
-        // 最初の結果にジャンプ
-        window.location.href = results[0].path;
+        // 最初の結果を新しいタブで開く
+        window.open(results[0].path, '_blank', 'noopener,noreferrer');
       } else {
-        // 検索を実行してから最初の結果にジャンプ
+        // 検索を実行してから最初の結果を新しいタブで開く
         performSearch(query).then(() => {
-          // 結果が得られた場合は次のレンダリングでジャンプ
+          // 結果が得られた場合は次のレンダリングで開く
         });
       }
     }, [query, results, performSearch]);
@@ -332,12 +332,12 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
                   {results && Array.isArray(results) && results.filter((result: any) => result && typeof result === 'object').map((result) => (
                     <div key={result._id || Math.random()} className="search-result-item">
                       <div className="result-url">
-                        <a href={result.path || '#'} className="result-link">
+                        <a href={result.path || '#'} className="result-link" target="_blank" rel="noopener noreferrer">
                           {window.location.origin + (result.path || '')}
                         </a>
                       </div>
                       <div className="result-title">
-                        <a href={result.path || '#'} className="result-title-link">
+                        <a href={result.path || '#'} className="result-title-link" target="_blank" rel="noopener noreferrer">
                           {result.title || result.path || 'Untitled'}
                         </a>
                       </div>
