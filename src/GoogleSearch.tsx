@@ -43,11 +43,18 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
         try {
           response = await fetch(`/_api/v3/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
           if (response.ok) {
-            data = await response.json();
-            if (data.data && Array.isArray(data.data)) {
-              setResults(data.data);
-              return;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+              if (data.data && Array.isArray(data.data)) {
+                setResults(data.data);
+                return;
+              }
+            } else {
+              console.warn('v3 API returned non-JSON response:', contentType);
             }
+          } else {
+            console.warn('v3 API response not ok:', response.status, response.statusText);
           }
         } catch (e) {
           console.warn('v3 API failed:', e);
@@ -57,17 +64,45 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
         try {
           response = await fetch(`/_api/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
           if (response.ok) {
-            data = await response.json();
-            if (data.data && Array.isArray(data.data)) {
-              setResults(data.data);
-              return;
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+              if (data.data && Array.isArray(data.data)) {
+                setResults(data.data);
+                return;
+              }
+            } else {
+              console.warn('v1 API returned non-JSON response:', contentType);
             }
+          } else {
+            console.warn('v1 API response not ok:', response.status, response.statusText);
           }
         } catch (e) {
           console.warn('v1 API failed:', e);
         }
 
-        // 3. デモ用の検索結果を表示
+        // 3. 他のAPI形式を試行
+        try {
+          response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}&offset=0&limit=20`);
+          if (response.ok) {
+            const contentType = response.headers.get('content-type');
+            if (contentType && contentType.includes('application/json')) {
+              data = await response.json();
+              if (data.data && Array.isArray(data.data)) {
+                setResults(data.data);
+                return;
+              }
+            } else {
+              console.warn('v2 API returned non-JSON response:', contentType);
+            }
+          } else {
+            console.warn('v2 API response not ok:', response.status, response.statusText);
+          }
+        } catch (e) {
+          console.warn('v2 API failed:', e);
+        }
+
+        // 4. デモ用の検索結果を表示
         console.info('Using demo search results for:', searchQuery);
         setResults([
           {
