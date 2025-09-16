@@ -83,7 +83,16 @@ export const enhancedGROWI = (Tag: React.FunctionComponent<any>): React.Function
 
       // Handle search directive
       if (search) {
-        const queryString = Array.isArray(children) ? children.join('') : children || '';
+        let queryString = '';
+        if (children) {
+          if (Array.isArray(children)) {
+            queryString = children.filter(child =>
+              typeof child === 'string' || typeof child === 'number'
+            ).join('');
+          } else if (typeof children === 'string' || typeof children === 'number') {
+            queryString = String(children);
+          }
+        }
         return <GoogleSearch initialQuery={queryString} />;
       }
 

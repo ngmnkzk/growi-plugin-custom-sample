@@ -20,10 +20,15 @@ interface GoogleSearchProps {
 
 export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initialQuery = '', children, ...props }) => {
   try {
+    if (!growiFacade || !growiFacade.react) {
+      console.error('growiFacade.react is not available');
+      return <div>Error: React hooks not available</div>;
+    }
+
     const { react } = growiFacade;
     const { useState, useCallback, useEffect } = react;
 
-    const [query, setQuery] = useState(initialQuery);
+    const [query, setQuery] = useState(initialQuery || '');
     const [results, setResults] = useState<SearchResult[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [hasSearched, setHasSearched] = useState(false);
@@ -155,7 +160,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
     }, [handleSearch]);
 
     const handleLuckySearch = useCallback(() => {
-      if (results.length > 0) {
+      if (Array.isArray(results) && results.length > 0) {
         // 最初の結果にジャンプ
         window.location.href = results[0].path;
       } else {
@@ -222,7 +227,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
           <button
             className="google-search-btn"
             onClick={handleLuckySearch}
-            disabled={isLoading || (!hasSearched && results.length === 0)}
+            disabled={isLoading || (!hasSearched && (!Array.isArray(results) || results.length === 0))}
           >
             I'm Feeling Lucky
           </button>
@@ -237,14 +242,14 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
               </div>
             ) : (
               <>
-                {results.length > 0 && (
+                {Array.isArray(results) && results.length > 0 && (
                   <div className="search-stats">
                     About {results.length} results for "{query}"
                   </div>
                 )}
 
                 <div className="search-results-list">
-                  {results.map((result) => (
+                  {Array.isArray(results) && results.map((result) => (
                     <div key={result._id} className="search-result-item">
                       <div className="result-url">
                         <a href={result.path} className="result-link">
@@ -263,7 +268,7 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
                   ))}
                 </div>
 
-                {results.length === 0 && (
+                {(!Array.isArray(results) || results.length === 0) && (
                   <div className="no-results">
                     <p>Your search - <strong>{query}</strong> - did not match any pages.</p>
                     <p>Suggestions:</p>
