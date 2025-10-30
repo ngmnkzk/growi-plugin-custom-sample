@@ -267,11 +267,13 @@ export const GoogleSearch: React.FunctionComponent<GoogleSearchProps> = ({ initi
       <div className="google-search-container">
         <div className="google-search-header">
           <div className="google-logo">
+            <span className="logo-g-blue">N</span>
+            <span className="logo-r-red">E</span>
+            <span className="logo-o-yellow">R</span>
+            <span className="logo-w-blue">O</span>
+            <span className="logo-i-green">N</span>
             <span className="logo-g-blue">G</span>
-            <span className="logo-r-red">R</span>
-            <span className="logo-o-yellow">O</span>
-            <span className="logo-w-blue">W</span>
-            <span className="logo-i-green">I</span>
+            <span className="logo-r-red">A</span>
           </div>
         </div>
 
